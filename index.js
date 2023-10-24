@@ -1,33 +1,71 @@
 const { ipcRenderer } = require("electron");
+const EventEmitter = require("events");
 const $ = require("jquery");
 
-const WORK_TIME = 10;
-const BREAK_TIME = 10;
+const TIPS = [
+  'Tip: Pressing "esc" skips this timer! Use it only if necessary...',
+  "Look outside—it's good for your eyes!",
+  "Smile more :)",
+  "Stay hydrated! You will be more productive.",
+  "Listening to classical music can, for some people, increase productivity.",
+  "Focus! 30 productive minutes is far better than hundreds of unproductive ones.",
+];
+let unusedTips = TIPS;
 
-const timer = $("#timer");
-const tickTimer = (currTime) => {
-  timer.html(`${currTime}s`);
+let WORK_TIME = null; // seconds
+let BREAK_TIME = null;
 
-  if (currTime === 0) {
-    timer.css("opacity", "0");
-    setTimeout(() => {
-      ipcRenderer.send("message", "hide");
-    }, 3000);
-  } else {
-    // don't ask why this is coded with setTimeout() recursion instead of setInterval()
-    setTimeout(() => {
-      tickTimer(currTime - 1);
-    }, 1000);
+const timerForeground = $("#timer-bar > #foreground");
+const mainContainer = $("#main");
+const tipText = $("#tip");
+
+let isTimerRunning = false;
+$(document).on("keydown", (e) => {
+  if (e.key === "Escape") {
+    endTimer();
   }
+});
+const endTimer = () => {
+  isTimerRunning = false;
+  // hide items
+  mainContainer.css("opacity", "0");
+  setTimeout(() => {
+    ipcRenderer.send("message", "hide");
+    // reset
+    timerForeground.css("width", "100%");
+
+    // start next iteration
+    setTimeout(startTimer, WORK_TIME * 1000);
+  }, 3000);
 };
 ipcRenderer.on("show", (event, data) => {
   setTimeout(() => {
-    tickTimer(BREAK_TIME);
-    timer.css("opacity", "100%");
+    mainContainer.css("opacity", "100%");
+    timerForeground.css("transition", `width ${BREAK_TIME}s`).css("width", "0");
+    setTimeout(() => {
+      // WORK_TIME should be long enough so that timings won't get bugged
+      // bugging timings involves certain specific actions (which I will not mention) done repeatedly
+      // bugging timings will be a large time commitment, even if WORK_TIME is too short
+      // bugging timings is not worth your time, and if you bug the timings successfully,
+      // then congratulations!
+      if (isTimerRunning) endTimer();
+    }, BREAK_TIME * 1000);
   }, 1000);
 });
+ipcRenderer.on("startTimer", (event, workTime, breakTime) => {
+  WORK_TIME = workTime;
+  BREAK_TIME = breakTime;
+  setTimeout(startTimer, BREAK_TIME * 1000);
+});
 const startTimer = () => {
+  isTimerRunning = true;
+
+  // set tip text
+  if (unusedTips.length === 0) unusedTips = TIPS;
+  const tipIx = Math.floor(Math.random() * unusedTips.length);
+  tipText.html(unusedTips[tipIx]);
+  unusedTips.splice(tipIx, 1);
+
+  // show window, run timer on window show
   ipcRenderer.send("message", "show");
-  setTimeout(startTimer, (WORK_TIME + BREAK_TIME) * 1000);
 };
-setTimeout(startTimer, BREAK_TIME);

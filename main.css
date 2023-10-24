@@ -1,13 +1,17 @@
-@import url("https://fonts.googleapis.com/css2?family=Fira+Code:wght@600&display=swap");
+@import url("https://fonts.googleapis.com/css2?family=Open+Sans:wght@400;600&display=swap");
 
 :root {
   --background-color: #fafaff;
+  --timer-background-color: #ebebf0;
+  --primary-color: #f7d34e;
+  --secondary-color: #f7de84;
   --text-color: #000000;
-  --font-family: "Fira Code", sans-serif;
+  --font-family: "Open Sans", sans-serif;
 }
 
 body {
   background-color: var(--background-color);
+  font-family: var(--font-family);
 }
 
 div#main {
@@ -15,11 +19,88 @@ div#main {
   justify-content: center;
   height: 95vh;
   align-items: center;
+  transition: opacity 2s;
 }
 
-#timer {
+div#centered {
+  text-align: center;
+}
+div#centered.in-settings {
+  display: flex;
+}
+
+/* #timer {
   color: var(--text-color);
   transition: opacity 2s;
   font-family: var(--font-family);
   font-size: 80px;
+} */
+
+#timer-bar {
+  position: relative;
+  background-color: var(--timer-background-color);
+  height: 5px;
+  width: 30vw;
+  margin: auto;
+}
+
+#timer-bar > #foreground {
+  position: absolute;
+  right: 0;
+  top: 0;
+  background-color: var(--primary-color);
+  height: 100%;
+  width: 100%;
+  transition-timing-function: cubic-bezier(0.5, 0, 1, 0.5);
+}
+
+#tip {
+  font-size: 15px;
+  line-height: 2rem;
+  color: var(--text-color);
+}
+
+#timer-toggle {
+  border: solid 3px var(--primary-color);
+  background-color: var(--background-color);
+  border-radius: 50%;
+  margin-right: 50vh;
+  width: 50vh;
+  height: 50vh;
+  font-family: var(--font-family);
+}
+
+#left-flex {
+  width: 80vh;
+  font-size: 0.8rem;
+  text-align: right;
+}
+
+input {
+  outline: none;
+  border: none;
+  background-color: var(--background-color);
+  border-bottom: 1px dashed var(--secondary-color);
+  width: 75px;
+  font-family: var(--font-family);
+  font-size: 0.8rem;
+}
+input:focus {
+  border-bottom: 1px solid var(--primary-color);
+}
+
+#heading {
+  font-weight: 600;
+  line-height: 3rem;
+  font-size: 2rem;
+}
+
+#subtitle {
+  font-size: 0.8rem;
+}
+
+#error {
+  width: fit-content;
+  color: #db2d43;
+  font-size: 0.8rem;
 }
