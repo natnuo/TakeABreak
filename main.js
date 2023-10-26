@@ -1,4 +1,10 @@
-const { app, BrowserWindow, ipcMain, screen } = require("electron");
+const {
+  app,
+  BrowserWindow,
+  ipcMain,
+  screen,
+  Notification,
+} = require("electron");
 const path = require("node:path");
 
 let displays;
@@ -19,11 +25,11 @@ const createWindows = () => {
       x: display.bounds.x,
       y: display.bounds.y,
       fullscreen: true,
-      title: "Take A Break!",
       webPreferences: {
         nodeIntegration: true,
         contextIsolation: false,
       },
+      icon: __dirname + "/images/loegoe.png",
     });
     win.hide();
     win.setMenu(null);
@@ -45,11 +51,11 @@ const createSettingsWindow = () => {
     height: primaryDisplay.bounds.height / 2,
     x: primaryDisplay.bounds.x + 50,
     y: primaryDisplay.bounds.y + 50,
-    title: "Take A Break: Settings",
     webPreferences: {
       nodeIntegration: true,
       contextIsolation: false,
     },
+    icon: __dirname + "/images/loegoe.png",
   });
   // settings.webContents.openDevTools();
   settings.setMenu(null);
@@ -59,28 +65,50 @@ const createSettingsWindow = () => {
   });
 };
 
-ipcMain.on("message", (event, arg) => {
+ipcMain.on("message", (event, arg, useOverlay) => {
   if (arg === "hide") {
-    windows.forEach((win) => {
-      win.hide();
-    });
+    if (useOverlay) {
+      windows.forEach((win) => {
+        win.hide();
+      });
+    } else {
+      new Notification({
+        title: "Take a Break",
+        body: "time to get back to work!",
+      }).show();
+    }
     settings.webContents.send("hidingTimer", "");
   } else if (arg === "show") {
-    windows.forEach((win) => {
-      win.show();
-    });
+    if (useOverlay) {
+      windows.forEach((win) => {
+        win.show();
+      });
+    } else {
+      new Notification({
+        title: "Take a Break",
+        body: "your break time has started!",
+      }).show();
+    }
     event.reply("show", "");
   }
 });
 const destroyWindows = () => {
-  windows.forEach((win) => {
-    win.close();
-  });
+  while (windows.length > 0) {
+    windows.pop().close();
+  }
+  primaryWindow = null;
 };
-ipcMain.on("startSend", (event, workTime, breakTime) => {
+ipcMain.on("startSend", (event, workTime, breakTime, useOverlay, pson) => {
   createWindows();
   setTimeout(() => {
-    primaryWindow.webContents.send("startTimer", workTime, breakTime);
+    if (primaryWindow)
+      primaryWindow.webContents.send(
+        "startTimer",
+        workTime,
+        breakTime,
+        useOverlay,
+        pson
+      );
   }, 1000);
 });
 ipcMain.on("endSend", (event, arg) => {
