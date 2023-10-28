@@ -1,4 +1,4 @@
-const { ipcRenderer } = require("electron");
+const { ipcRenderer, webFrame } = require("electron");
 const $ = require("jquery");
 let workTime;
 let breakTime;
@@ -62,4 +62,10 @@ $(document).on("keypress", (e) => {
   if (e.which === 13) {
     $("#timer-toggle").trigger("click");
   }
+});
+$("#zoom-out").on("click", () => {
+  webFrame.setZoomFactor(Math.max(webFrame.getZoomFactor() - 0.2, 0.4));
+});
+$("#zoom-in").on("click", () => {
+  webFrame.setZoomFactor(Math.min(webFrame.getZoomFactor() + 0.2, 2));
 });

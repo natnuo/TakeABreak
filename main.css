@@ -169,3 +169,21 @@ input:focus {
   left: 10px;
   height: 1.25rem;
 }
+
+#zoom-buttons {
+  position: absolute;
+  bottom: 10px;
+  right: 10px;
+  font-size: 0.8rem;
+  font-family: "Open Sans", sans-serif;
+  background-color: var(--timer-background-color);
+  border: 1px solid var(--text-color);
+}
+#zoom-buttons > button {
+  width: 1.5rem;
+  font-size: 0.8rem;
+  background-color: var(--timer-background-color);
+  font-family: "Open Sans", sans-serif;
+  border: none;
+  cursor: pointer;
+}

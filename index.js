@@ -3,6 +3,7 @@ const $ = require("jquery");
 
 const TIPS = [
   'Tip: Pressing "esc" skips this timer! Use it only if necessary...',
+  'Tip: Pressing "esc" skips this timer! Use it only if necessary...',
   "Tip: Settings only update once the timer is restarted",
   "Look outside—it's good for your eyes!",
   "Smile more :)",
@@ -24,11 +25,13 @@ const tipText = $("#tip");
 
 let isTimerRunning = false;
 $(document).on("keydown", (e) => {
-  if (e.key === "Escape") {
+  if (e.code === "Escape") {
     endTimer(true);
   }
 });
 const endTimer = (r) => {
+  if (!isTimerRunning) return;
+
   isTimerRunning = false;
   // play sound
   if (PLAY_SOUND_ON_END && !r) {
@@ -37,19 +40,24 @@ const endTimer = (r) => {
     audio.play();
   }
   // hide items
-  setTimeout(() => {
-    mainContainer.css("opacity", "0");
-    setTimeout(() => {
-      ipcRenderer.send("message", "hide", USE_OVERLAY);
-      // reset
-      timerForeground.css("width", "100%");
+  setTimeout(
+    () => {
+      mainContainer.css("opacity", "0");
+      setTimeout(() => {
+        $("body").css("cursor", "auto");
+        ipcRenderer.send("message", "hide", USE_OVERLAY);
+        // reset
+        timerForeground.css("width", "100%");
 
-      // start next iteration
-      setTimeout(startTimer, WORK_TIME * 1000);
-    }, 3000);
-  }, 2222);
+        // start next iteration
+        setTimeout(startTimer, WORK_TIME * 1000);
+      }, 3000);
+    },
+    r || !PLAY_SOUND_ON_END ? 0 : 2222
+  );
 };
 ipcRenderer.on("show", (event, data) => {
+  $("body").css("cursor", "none");
   setTimeout(() => {
     mainContainer
       .css(
@@ -62,12 +70,7 @@ ipcRenderer.on("show", (event, data) => {
       .css("transition-duration", `${BREAK_TIME}s`)
       .css("width", "0");
     setTimeout(() => {
-      // WORK_TIME should be long enough so that timings won't get bugged
-      // bugging timings involves certain specific actions (which I will not mention) done repeatedly
-      // bugging timings will be a large time commitment, even if WORK_TIME is too short
-      // bugging timings is not worth your time, and if you bug the timings successfully,
-      // then congratulations!
-      if (isTimerRunning) endTimer(false);
+      endTimer(false);
     }, BREAK_TIME * 1000);
   }, 1000);
 });

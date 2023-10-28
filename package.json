@@ -10,7 +10,8 @@
   "author": "",
   "license": "ISC",
   "devDependencies": {
-    "electron": "^27.0.2"
+    "electron": "^27.0.2",
+    "electron-packager": "^17.1.2"
   },
   "dependencies": {
     "jquery": "^3.7.1"

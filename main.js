@@ -13,10 +13,6 @@ let primaryDisplay;
 let primaryWindow;
 let windows = [];
 let settings;
-// add esc to exit, add fun text, other cool things!
-// also make sound when disappear
-// hide cursor would be cool too
-// (also webpack!)
 const createWindows = () => {
   displays.forEach((display) => {
     const win = new BrowserWindow({
@@ -29,7 +25,7 @@ const createWindows = () => {
         nodeIntegration: true,
         contextIsolation: false,
       },
-      icon: __dirname + "/images/loegoe.png",
+      icon: __dirname + "/loegoe.ico",
     });
     win.hide();
     win.setMenu(null);
@@ -55,7 +51,7 @@ const createSettingsWindow = () => {
       nodeIntegration: true,
       contextIsolation: false,
     },
-    icon: __dirname + "/images/loegoe.png",
+    icon: __dirname + "/loegoe.ico",
   });
   // settings.webContents.openDevTools();
   settings.setMenu(null);
@@ -89,7 +85,9 @@ ipcMain.on("message", (event, arg, useOverlay) => {
         body: "your break time has started!",
       }).show();
     }
-    event.reply("show", "");
+    windows.forEach((win) => {
+      win.webContents.send("show", "");
+    });
   }
 });
 const destroyWindows = () => {
@@ -118,6 +116,8 @@ ipcMain.on("endSend", (event, arg) => {
 app.whenReady().then(() => {
   displays = screen.getAllDisplays();
   primaryDisplay = screen.getPrimaryDisplay();
+
+  app.setLoginItemSettings({ openAtLogin: true });
 
   createSettingsWindow();
 
