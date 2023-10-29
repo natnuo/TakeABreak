@@ -53,10 +53,9 @@ $("#timer-toggle").on("click", () => {
 ipcRenderer.on("hidingTimer", () => {
   setSubtitleTime(new Date(new Date().getTime() + workTime * 60000));
 });
-// settings bkgd image cannot be image 0
 $("#main").css(
   "background-image",
-  `url(./images/b${Math.floor(Math.random() * 16) + 1}.png)`
+  `url(./images/s${Math.floor(Math.random() * 3)}.png)`
 );
 $(document).on("keypress", (e) => {
   if (e.which === 13) {
@@ -68,4 +67,9 @@ $("#zoom-out").on("click", () => {
 });
 $("#zoom-in").on("click", () => {
   webFrame.setZoomFactor(Math.min(webFrame.getZoomFactor() + 0.2, 2));
+});
+ipcRenderer.on("startTimeout", (event, timeMS, id) => {
+  setTimeout(() => {
+    ipcRenderer.send("recieveTimeout", id);
+  }, timeMS);
 });

@@ -165,24 +165,26 @@ input:focus {
 
 #banner-settings {
   position: absolute;
-  top: 10px;
-  left: 10px;
+  bottom: 10px;
+  left: 50%;
   height: 1.25rem;
+  transform: translateX(-50%);
 }
 
 #zoom-buttons {
   position: absolute;
-  bottom: 10px;
-  right: 10px;
+  top: 10px;
+  left: 10px;
   font-size: 0.8rem;
   font-family: "Open Sans", sans-serif;
-  background-color: var(--timer-background-color);
-  border: 1px solid var(--text-color);
+  background-color: var(--background-color);
+  border: 1px groove var(--text-color);
+  border-radius: 5px;
 }
 #zoom-buttons > button {
   width: 1.5rem;
   font-size: 0.8rem;
-  background-color: var(--timer-background-color);
+  background-color: var(--background-color);
   font-family: "Open Sans", sans-serif;
   border: none;
   cursor: pointer;

@@ -7,10 +7,11 @@ const {
 } = require("electron");
 const path = require("node:path");
 
+let running = false;
 let displays;
 let primaryDisplay;
-
 let primaryWindow;
+let timer;
 let windows = [];
 let settings;
 const createWindows = () => {
@@ -27,10 +28,8 @@ const createWindows = () => {
       },
       icon: __dirname + "/loegoe.ico",
     });
-    win.hide();
     win.setMenu(null);
     if (display.id === primaryDisplay.id) {
-      primaryWindow = win;
       win.loadFile("primary.html");
     } else {
       win.loadFile("secondary.html");
@@ -57,60 +56,143 @@ const createSettingsWindow = () => {
   settings.setMenu(null);
   settings.loadFile("settings.html");
   settings.on("closed", () => {
-    if (process.platform !== "darwin") app.quit();
+    if (process.platform !== "darwin") {
+      try {
+        running = false;
+      } catch {}
+      app.quit();
+    }
   });
 };
 
-ipcMain.on("message", (event, arg, useOverlay) => {
-  if (arg === "hide") {
-    if (useOverlay) {
-      windows.forEach((win) => {
-        win.hide();
-      });
-    } else {
-      new Notification({
-        title: "Take a Break",
-        body: "time to get back to work!",
-      }).show();
-    }
-    settings.webContents.send("hidingTimer", "");
-  } else if (arg === "show") {
-    if (useOverlay) {
-      windows.forEach((win) => {
-        win.show();
-      });
-    } else {
-      new Notification({
-        title: "Take a Break",
-        body: "your break time has started!",
-      }).show();
-    }
-    windows.forEach((win) => {
-      win.webContents.send("show", "");
-    });
-  }
-});
+// // neatest code you will ever see
+// let wt = null;
+// let bt = null;
+// let ps = null;
+
+// ipcMain.on("message", (event, arg, useOverlay) => {
+//   sh(arg, useOverlay);
+// });
+// const sh = (arg, useOverlay) => {
+//   if (arg === "hide") {
+//     while (timers.length > 0) clearTimeout(timers.pop());
+//     if (useOverlay) {
+//       destroyWindows();
+//     } else {
+//       new Notification({
+//         title: "Take a Break",
+//         body: "time to get back to work!",
+//       }).show();
+//     }
+//     settings.webContents.send("hidingTimer", "");
+//     loop(wt, bt, useOverlay, ps);
+//   } else if (arg === "show") {
+//     if (useOverlay) {
+//       createWindows();
+//     }
+//     windows.forEach((win) => {
+//       win.webContents.send("show", "");
+//     });
+//   }
+// };
 const destroyWindows = () => {
   while (windows.length > 0) {
     windows.pop().close();
   }
   primaryWindow = null;
 };
-ipcMain.on("startSend", (event, workTime, breakTime, useOverlay, pson) => {
-  createWindows();
-  setTimeout(() => {
-    if (primaryWindow)
-      primaryWindow.webContents.send(
-        "startTimer",
-        workTime,
-        breakTime,
-        useOverlay,
-        pson
-      );
-  }, 1000);
+// const loop = (workTime, breakTime, useOverlay, pson) => {
+//   wt = workTime;
+//   bt = breakTime;
+//   ps = pson;
+//   timers.push(
+//     setTimeout(() => {
+//       if (useOverlay) {
+//         sh("show", useOverlay);
+//         primaryWindow.webContents.send(
+//           "startTimer",
+//           workTime,
+//           breakTime,
+//           useOverlay,
+//           pson
+//         );
+//       } else {
+//         new Notification({
+//           title: "Take a Break",
+//           body: "your break time has started!",
+//         }).show();
+//         timers.push(
+//           setTimeout(() => {
+//             sh("hide", useOverlay);
+//           }, breakTime)
+//         );
+//       }
+//     }, workTime)
+//   );
+// };
+// ipcMain.on("startSend", (event, workTime, breakTime, useOverlay, pson) => {
+//   loop(workTime, breakTime, useOverlay, pson);
+// });
+// ipcMain.on("endSend", (event, arg) => {
+//   while (timers.length > 0) clearTimeout(timers.pop());
+// });
+
+// was a workaround, won't change now
+ipcMain.on("recieveTimeout", (event, id) => {
+  console.log(running);
+  if (running) {
+    if (id === 0) {
+      if (USE_OVERLAY) {
+        createWindows();
+      } else {
+        new Notification({
+          title: "Take a Break",
+          body: "your break time has started!",
+        }).show();
+        settings.webContents.send("startTimeout", BREAK_TIME * 1000, 1);
+      }
+    } else if (id === 1) {
+      hide();
+    }
+  }
 });
-ipcMain.on("endSend", (event, arg) => {
-  destroyWindows();
+const workTimeLoop = () => {
+  running = true;
+  settings.webContents.send("startTimeout", WORK_TIME * 1000, 0);
+};
+
+const hide = () => {
+  if (USE_OVERLAY) {
+    destroyWindows();
+  } else {
+    new Notification({
+      title: "Take a Break",
+      body: "time to get back to work!",
+    }).show();
+  }
+  settings.webContents.send("hidingTimer", "");
+  workTimeLoop();
+};
+ipcMain.on("hide", (event, args) => {
+  hide();
+});
+ipcMain.on("ready", (event, args) => {
+  event.reply("startTimer", WORK_TIME, BREAK_TIME, USE_OVERLAY, PSON);
+});
+
+let WORK_TIME;
+let BREAK_TIME;
+let USE_OVERLAY;
+let PSON;
+ipcMain.on("startSend", (event, workTime, breakTime, useOverlay, pson) => {
+  WORK_TIME = workTime;
+  BREAK_TIME = breakTime;
+  USE_OVERLAY = useOverlay;
+  PSON = pson;
+  workTimeLoop();
+});
+ipcMain.on("endSend", (event, args) => {
+  running = false;
 });
 
 app.whenReady().then(() => {
