@@ -139,7 +139,6 @@ const destroyWindows = () => {
 
 // was a workaround, won't change now
 ipcMain.on("recieveTimeout", (event, id) => {
-  console.log(running);
   if (running) {
     if (id === 0) {
       if (USE_OVERLAY) {
