@@ -56,7 +56,7 @@ ipcRenderer.on("hidingTimer", () => {
 // settings bkgd image cannot be image 0
 $("#main").css(
   "background-image",
-  `url(./images/b${Math.floor(Math.random() * 2) + 1}.png)`
+  `url(./images/b${Math.floor(Math.random() * 16) + 1}.png)`
 );
 $(document).on("keypress", (e) => {
   if (e.which === 13) {

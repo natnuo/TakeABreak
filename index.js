@@ -2,8 +2,7 @@ const { ipcRenderer } = require("electron");
 const $ = require("jquery");
 
 const TIPS = [
-  'Tip: Pressing "esc" skips this timer! Use it only if necessary...',
-  'Tip: Pressing "esc" skips this timer! Use it only if necessary...',
+  'Tip: Clicking your mouse down, then pressing "esc" skips this timer! Use it only if necessary...',
   "Tip: Settings only update once the timer is restarted",
   "Look outside—it's good for your eyes!",
   "Smile more :)",
@@ -44,7 +43,6 @@ const endTimer = (r) => {
     () => {
       mainContainer.css("opacity", "0");
       setTimeout(() => {
-        $("body").css("cursor", "auto");
         ipcRenderer.send("message", "hide", USE_OVERLAY);
         // reset
         timerForeground.css("width", "100%");
@@ -57,12 +55,11 @@ const endTimer = (r) => {
   );
 };
 ipcRenderer.on("show", (event, data) => {
-  $("body").css("cursor", "none");
   setTimeout(() => {
     mainContainer
       .css(
         "background-image",
-        `url(./images/b${Math.floor(Math.random() * 3)}.png)`
+        `url(./images/b${Math.floor(Math.random() * 17)}.png)`
       )
       .css("opacity", "100%");
     timerForeground
